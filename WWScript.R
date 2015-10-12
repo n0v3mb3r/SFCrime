@@ -2,6 +2,7 @@ library(RCurl)
 library(ggplot2)
 library(plyr)
 library(data.table)  #need to install.packages("data.table")
+library(class)
 
 SFCrime.data.train = read.csv(text=getURL("https://media.githubusercontent.com/media/n0v3mb3r/SFCrime/master/train.csv"),header = TRUE)
 
@@ -22,3 +23,26 @@ detach(SFCrime.data.train)
 
 #group by count by IsLight and Category - this is messed up a bit, need to edit
 #DT = aggregate(SFCrime.data.train, by=list(SFCrime.data.train$IsLight, SFCrime.data.train$Category), FUN=length);
+
+
+
+
+
+#kNN
+#try out training on first 1000 variables for just long/lat using euclidian geometry as distance function
+#coded while an entire wine bottle deep - the RMS is really large
+# need to probably train more variables and switch from euclidian geo to lat/long distance
+
+
+error = matrix(,nrow = 100,ncol = 2)
+
+for(neighbors in 1:100)
+{
+train = SFCrime.data.train[1:1000,c("X","Y")]
+test = SFCrime.data.train[1001:1100,c("X","Y")]
+validation = SFCrime.data.train[1001:1100,"Category"]
+cl = SFCrime.data.train$Category[1:1000]
+model.knn = knn(train,test,cl,k=5)
+error[neighbors[1],] = c(neighbors,as.numeric(substr(all.equal(model.knn,validation),start = 1,stop = 2)))
+}
+
